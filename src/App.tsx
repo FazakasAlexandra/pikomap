@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import Pikomap from "./components/Pikomap";
 
@@ -9,7 +9,7 @@ function App() {
     <>
       <button
         onClick={() => {
-          console.log("change time");
+          setSelectedTime("2024-04-27T06:00Z");
         }}
       >
         Change Time

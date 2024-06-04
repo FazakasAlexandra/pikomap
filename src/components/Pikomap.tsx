@@ -1,13 +1,18 @@
 import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import { FeatureCollection, Geometry, GeoJsonProperties } from "geojson"; // Import the FeatureCollection type
+import { FeatureCollection, Geometry, GeoJsonProperties } from "geojson";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import data from "../data.json";
 
-const Pikomap = (props: { time: string }) => {
-  const mapContainerRef = useRef(null);
-  console.log(data);
+const Pikomap = ({ time }: { time: string }) => {
+  const ref = useRef(null);
+  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+
+  useEffect(() => {
+    map?.setFilter("sensor-points", ["==", ["get", "time"], time]);
+  }, [time]);
+
   useEffect(() => {
     mapboxgl.accessToken =
       "pk.eyJ1IjoiYWxleGFuZHJhZmF6YWthcyIsImEiOiJjbHd5cDgwN2ExZnEzMmtwZzEwcXpsanpkIn0.05GhVKXeuz76H5OvrOjBmg";
@@ -19,6 +24,8 @@ const Pikomap = (props: { time: string }) => {
       center: [13.847, 51.0221],
       zoom: 10,
     });
+
+    setMap(map);
 
     map.on("load", () => {
       map.addSource("pikodata", {
@@ -38,9 +45,7 @@ const Pikomap = (props: { time: string }) => {
 
       map.on("click", "sensor-points", (e: any) => {
         const coordinates = e.features[0].geometry.coordinates.slice();
-        const properties = e.features.find(
-          (feature: any) => feature.properties.time === props.time
-        ).properties;
+        const properties = e.features[0].properties;
 
         new mapboxgl.Popup()
           .setLngLat(coordinates)
@@ -62,14 +67,12 @@ const Pikomap = (props: { time: string }) => {
         map.getCanvas().style.cursor = "";
       });
     });
-
-    return () => map.remove();
   }, []);
 
   return (
     <div
       id="pikomap"
-      ref={mapContainerRef}
+      ref={ref as React.RefObject<HTMLDivElement>}
       style={{ width: "100%", height: "100vh" }}
     />
   );
