@@ -24,7 +24,6 @@ const SelectionInfo: React.FC<SelectionInfoProps> = ({
           mb="10px"
           onClick={() => {
             onOpen();
-            console.log("selectedInfo data:", selectedSensorData);
           }}
         >
           Selected{" "}

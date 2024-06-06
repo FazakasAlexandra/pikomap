@@ -33,14 +33,6 @@ const useMap = (data: FeatureCollection, date: string) => {
   };
 
   useEffect(() => {
-    console.log("DATE useMap:", date);
-  }, [date]);
-
-  useEffect(() => {
-    console.log("useMap selectedSensorData: ", selectedSensorData);
-  }, [selectedSensorData]);
-
-  useEffect(() => {
     mapboxgl.accessToken =
       "pk.eyJ1IjoiYWxleGFuZHJhZmF6YWthcyIsImEiOiJjbHd5cDgwN2ExZnEzMmtwZzEwcXpsanpkIn0.05GhVKXeuz76H5OvrOjBmg";
 
@@ -85,8 +77,6 @@ const useMap = (data: FeatureCollection, date: string) => {
           ["get", "id"],
           e.features[0].properties.id,
         ]);
-
-        console.log("problem! outdated date");
 
         const res = map.querySourceFeatures("pikodata", {
           sourceLayer: "sensor-points",

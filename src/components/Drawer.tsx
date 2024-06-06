@@ -20,7 +20,6 @@ const CustomDrawer: React.FC<DrawerProps> = ({
   isOpen,
   selectedSensorData,
 }) => {
-  console.log(selectedSensorData);
   return (
     <Drawer placement={"right"} onClose={onClose} isOpen={isOpen}>
       <DrawerOverlay />
