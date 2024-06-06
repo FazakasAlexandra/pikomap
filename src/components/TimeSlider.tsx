@@ -8,34 +8,8 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { formatDate, getMonthInfo } from "../utils/date";
 
-const getMonthInfo = (date: Date): string => {
-  // Get the month name
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  let month = monthNames[date.getMonth()];
-
-  return month;
-};
-
-function formatDate(date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = (date.getUTCMonth() + 1).toString().padStart(2, "0"); // Month is 0-indexed
-  const day = date.getUTCDate().toString().padStart(2, "0");
-  return `${year}-${month}-${day}T00:00Z`;
-}
 interface TimeSliderProps {
   dates: Date[];
   startDate: Date;

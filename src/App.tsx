@@ -1,49 +1,33 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-import Pikomap from "./components/Pikomap";
-import TimeSlider from "./components/TimeSlider";
-import {
-  ChakraProvider,
-  Button,
-  Flex,
-  Text,
-  Drawer,
-  DrawerOverlay,
-  DrawerHeader,
-  DrawerContent,
-  DrawerBody,
-  useDisclosure,
-  Link,
-} from "@chakra-ui/react";
+import { ChakraProvider, Flex, useDisclosure } from "@chakra-ui/react";
 import data from "./data.json";
-import { MapboxGeoJSONFeature } from "mapbox-gl";
+import { generateDatesBetween } from "./utils/date";
+import useMap from "./hooks/useMap";
+import { FeatureCollection } from "geojson";
 
-function generateDatesBetween(startDate: Date, endDate: Date): Date[] {
-  const dates: Date[] = [];
-  const currentDate = new Date(startDate);
-
-  while (currentDate <= endDate) {
-    dates.push(new Date(currentDate));
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  return dates;
-}
+import { Drawer, SelectionInfo, TimeSlider } from "./components";
 
 function App() {
-  const [selectedDate, setSelectedDate] = useState(
-    data.features[0].properties.time
-  );
-  const [selectedSensorData, setSelectedSensorData] = useState<
-    MapboxGeoJSONFeature[]
-  >([]);
   const startDate: Date = new Date(data.features[0].properties.time);
   const endDate: Date = new Date(
     data.features[data.features.length - 1].properties.time
   );
-  const dates = generateDatesBetween(startDate, endDate);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const dates = generateDatesBetween(startDate, endDate);
+  const [selectedDate, setSelectedDate] = useState(
+    data.features[0].properties.time
+  );
+  const { map, selectedSensorData, filterByTime, filterByTimeAndId } = useMap(
+    data as FeatureCollection,
+    selectedDate
+  );
+
+  useEffect(() => {
+    if (selectedSensorData.length) {
+      filterByTimeAndId();
+    }
+  }, [selectedDate]);
 
   useEffect(() => {
     if (selectedSensorData.length) {
@@ -67,77 +51,22 @@ function App() {
           endDate={endDate}
           setSelectedDate={setSelectedDate}
         />
-        {(selectedSensorData.length && (
-          <Flex
-            justifyContent="space-between"
-            alignItems={"center"}
-            mt={"20px"}
-          >
-            <Link mb={"10px"} onClick={() => onOpen()}>
-              View data for{" "}
-              <Text display={"inline"} fontWeight={"bold"} color={"blue.500"}>
-                {selectedSensorData[0].properties?.name}
-              </Text>{" "}
-            </Link>
-
-            <Button
-              onClick={() => {
-                map?.setFilter("sensor-points", [
-                  "==",
-                  ["get", "time"],
-                  selectedDate,
-                ]);
-              }}
-            >
-              Show All
-            </Button>
-          </Flex>
+        {(selectedSensorData.length && map && (
+          <SelectionInfo
+            showAll={() => filterByTime()}
+            selectedSensorData={selectedSensorData[0]} // display mm/dd and sensor name
+            selectedDate={selectedDate}
+            onOpen={onOpen}
+          />
         )) ||
           null}
-
-        <Drawer placement={"right"} onClose={onClose} isOpen={isOpen}>
-          <DrawerOverlay />
-          <DrawerContent>
-            <DrawerHeader borderBottomWidth="1px">
-              {selectedSensorData.length &&
-                selectedSensorData[0].properties?.name}{" "}
-              data
-            </DrawerHeader>
-            <DrawerBody>
-              {selectedSensorData.length &&
-                selectedSensorData.map((feature, idx) => {
-                  return (
-                    <div key={idx}>
-                      <Text fontWeight={"bold"}>
-                        At {feature.properties?.time.substr(11, 5)}:
-                      </Text>
-                      <div>
-                        <Text>
-                          Temperature: {feature.properties?.v}
-                          {feature.properties?.uom}
-                        </Text>
-                        <Text>
-                          High: {feature.properties?.hi}
-                          {feature.properties?.uom}
-                        </Text>
-                        <Text>
-                          Low: {feature.properties?.lo}
-                          {feature.properties?.uom}
-                        </Text>
-                      </div>
-                    </div>
-                  );
-                })}
-            </DrawerBody>
-          </DrawerContent>
-        </Drawer>
+        <Drawer
+          selectedSensorData={selectedSensorData}
+          onClose={onClose}
+          isOpen={isOpen}
+        />
       </Flex>
-      <Pikomap
-        time={selectedDate}
-        setSelectedSensorData={setSelectedSensorData}
-        setAppMap={setMap}
-        map={map}
-      />
+      <div id="pikomap" style={{ width: "100%", height: "100vh" }} />;
     </ChakraProvider>
   );
 }
